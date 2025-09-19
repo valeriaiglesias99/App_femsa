@@ -54,24 +54,25 @@ USER_INFO_URL = "https://www.googleapis.com/oauth2/v2/userinfo"
 def login_with_google():
     oauth = OAuth2Session(
         client_id=CLIENT_ID,
-        client_secret=CLIENT_SECRET,
-        scope="openid email profile",
+        scope=["openid", "email", "profile"],
         redirect_uri=REDIRECT_URI,
     )
-
     if "code" in st.query_params:
         code = st.query_params["code"][0]
         token = oauth.fetch_token(
-            TOKEN_URL, code=code
+            TOKEN_URL,
+            code=code,
+            client_secret=CLIENT_SECRET
         )
         user_info = oauth.get(USER_INFO_URL).json()
         st.session_state["user_email"] = user_info["email"]
         st.session_state["user_name"] = user_info.get("name", "")
-        st.experimental_set_query_params()  # Limpiar parámetros URL
+        st.experimental_set_query_params()
     else:
-        auth_url, _ = oauth.create_authorization_url(AUTHORIZATION_URL, access_type="offline", prompt="consent")
+        auth_url, _ = oauth.create_authorization_url(
+            AUTHORIZATION_URL, access_type="offline", prompt="consent"
+        )
         st.markdown(f"[Inicia sesión con Google]({auth_url})")
-
 # ---------------------
 # Login
 # ---------------------
