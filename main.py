@@ -4,7 +4,8 @@ import pandas as pd
 from datetime import date, timedelta
 from authlib.integrations.requests_client import OAuth2Session
 import os
-
+from pages.dashboard import mostrar_dashboard
+from pages.lona import mostrar_nueva_pagina
 
 
 # ---------------------
@@ -12,7 +13,34 @@ import os
 # ---------------------
 df_final = load_data()
 
-# --- Configuración OAuth Google ---
+        # Menú lateral para seleccionar página
+pagina = st.sidebar.selectbox(
+    "Selecciona una página",
+    ["Dashboard", "Reporte"]  # Los nombres de tus páginas
+)
+
+
+page_bg = """
+<style>
+    /* Fondo y color de texto */
+    body, [data-testid="stAppViewContainer"] {
+        background-color: #2E2E2E;
+        color: white;
+    }
+    .stText, .stMarkdown {
+        color: white;
+    }
+    /* Contenedor principal full width */
+    .block-container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+        max-width: 100% !important;
+    }
+</style>
+"""
+st.markdown(page_bg, unsafe_allow_html=True)
+
+
 CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID")
 CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET")
 REDIRECT_URI = "https://appfemsa-eeoerf69vjjsguyqqxxpjg.streamlit.app"
@@ -31,9 +59,8 @@ def login_with_google():
         redirect_uri=REDIRECT_URI,
     )
 
-    if "code" in st.experimental_get_query_params():
-        # Recibimos el código de Google
-        code = st.experimental_get_query_params()["code"][0]
+    if "code" in st.query_params:
+        code = st.query_params["code"][0]
         token = oauth.fetch_token(
             TOKEN_URL, code=code, client_secret=CLIENT_SECRET
         )
@@ -57,12 +84,6 @@ else:
     # --- Filtrar datos según el usuario ---
     user_email = st.session_state["user_email"]
     df_filtrado = df_final[df_final["email_provider"] == user_email].copy()
-
-    if not df_filtrado.empty:
-        st.write("Tus datos:")
-        st.write(df_filtrado)
-    else:
-        st.warning("No tienes datos asignados en la base.")
 
     if df_filtrado.empty:
         st.warning("No tienes datos asignados en la base.")
@@ -117,11 +138,7 @@ else:
         st.dataframe(df_filtrado)
         # ---------------------
 
-                # Menú lateral para seleccionar página
-        pagina = st.sidebar.selectbox(
-            "Selecciona una página",
-            ["Dashboard", "Reporte"]  # Los nombres de tus páginas
-        )
+
         # Importar el contenido según la página
         # ---------------------
         if pagina == "Dashboard":
@@ -133,26 +150,6 @@ else:
             from pages.lona import mostrar_nueva_pagina
             mostrar_nueva_pagina(df_filtrado)
 
-        page_bg = """
-        <style>
-            /* Fondo y color de texto */
-            body, [data-testid="stAppViewContainer"] {
-                background-color: #2E2E2E;
-                color: white;
-            }
-            .stText, .stMarkdown {
-                color: white;
-            }
-
-            /* Contenedor principal full width */
-            .block-container {
-                padding-left: 1rem;
-                padding-right: 1rem;
-                max-width: 100% !important;
-            }
-        </style>
-        """
-        st.markdown(page_bg, unsafe_allow_html=True)
 
 
 
