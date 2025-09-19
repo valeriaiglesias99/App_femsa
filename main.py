@@ -57,6 +57,7 @@ def login_with_google():
         scope=["openid", "email", "profile"],
         redirect_uri=REDIRECT_URI,
     )
+    print(st.query_params)
     if "code" in st.query_params:
         code = st.query_params["code"][0]
         token = oauth.fetch_token(
@@ -64,6 +65,8 @@ def login_with_google():
             code=code,
             client_secret=CLIENT_SECRET
         )
+
+
         user_info = oauth.get(USER_INFO_URL).json()
         st.session_state["user_email"] = user_info["email"]
         st.session_state["user_name"] = user_info.get("name", "")
