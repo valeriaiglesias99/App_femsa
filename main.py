@@ -40,10 +40,10 @@ page_bg = """
 """
 st.markdown(page_bg, unsafe_allow_html=True)
 
-
-CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID")
-CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET")
+CLIENT_ID = st.secrets["GOOGLE_CLIENT_ID"]
+CLIENT_SECRET = st.secrets["GOOGLE_CLIENT_SECRET"]
 REDIRECT_URI = "https://appfemsa-eeoerf69vjjsguyqqxxpjg.streamlit.app"
+
 
 AUTHORIZATION_URL = "https://accounts.google.com/o/oauth2/auth"
 TOKEN_URL = "https://oauth2.googleapis.com/token"
@@ -62,7 +62,7 @@ def login_with_google():
     if "code" in st.query_params:
         code = st.query_params["code"][0]
         token = oauth.fetch_token(
-            TOKEN_URL, code=code, client_secret=CLIENT_SECRET
+            TOKEN_URL, code=code
         )
         user_info = oauth.get(USER_INFO_URL).json()
         st.session_state["user_email"] = user_info["email"]
