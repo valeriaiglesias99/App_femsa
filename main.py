@@ -24,8 +24,6 @@ pagina = st.sidebar.selectbox(
 
 #CLIENT_ID = st.secrets["GOOGLE_CLIENT_ID"]
 #CLIENT_SECRET = st.secrets["GOOGLE_CLIENT_SECRET"]
-CLIENT_ID = "581193155513-ib71ujm4uqa84eballc37gmebj4om8pi.apps.googleusercontent.com"
-CLIENT_SECRET = "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"
 REDIRECT_URI = "http://localhost:8501"
 #REDIRECT_URI = "https://appfemsa-eeoerf69vjjsguyqqxxpjg.streamlit.app"
 
