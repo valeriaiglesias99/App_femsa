@@ -51,7 +51,7 @@ def mostrar_dashboard(df_filtrado):
             margin: 5px;
             display: flex;
             align-items: center;
-            justify-content: space-around;
+            justify-content: center;
             color: white;
             height: 90px;
             box-shadow: 0px 2px 6px rgba(0,0,0,0.3);
@@ -101,7 +101,7 @@ def mostrar_dashboard(df_filtrado):
             kpi_card("Fotos", f"{fotos:,}", icon="📷")
 
         # --- Fila 2: 5 tarjetas (con 2 porcentajes en la misma) ---
-        col5, col6, col7, col_pct = st.columns(4)
+        col5, col6, col7, col_pct = st.columns([1, 1, 1, 1])
 
         with col5:
             kpi_card("Universo PDV", f"{universo_pdv:,}", icon="🏪")
@@ -117,25 +117,65 @@ def mostrar_dashboard(df_filtrado):
 
 
     # --- Gráfico de ejecución por día ---
+
     def ejecucion_por_dia(df_final):
-        df_hist = df_final.groupby("DiaMes_visit")["visit_id_answer"].nunique().reset_index().rename(columns={"visit_id_answer": "total_ejecucion"})
-        bars = alt.Chart(df_hist).mark_bar(color="#AF0E0E", size=25, cornerRadiusTopLeft=3, cornerRadiusTopRight=3).encode(
-            x=alt.X("DiaMes_visit:T", title="Fecha"),
-            y=alt.Y("total_ejecucion:Q", title="Total Ejecución"),
-            tooltip=["DiaMes_visit", "total_ejecucion"]
+        df_hist = (
+            df_final.groupby("fecha_visit")["visit_id_answer"]
+            .nunique()
+            .reset_index()
+            .rename(columns={"visit_id_answer": "total_ejecucion"})
         )
-        text = alt.Chart(df_hist).mark_text(dy=-10, color="white", size=14).encode(
-            x="DiaMes_visit:T",
+
+        bars = alt.Chart(df_hist).mark_bar(
+            color="#AF0E0E", size=25,
+            cornerRadiusTopLeft=3, cornerRadiusTopRight=3
+        ).encode(
+            x=alt.X("fecha_visit:T", title="Fecha"),
+            y=alt.Y("total_ejecucion:Q", title="PDV Medidos"),
+            tooltip=[
+                alt.Tooltip("fecha_visit:T", title="Fecha", format="%b %d, %Y"),  # ✅ fecha formateada
+                alt.Tooltip("total_ejecucion:Q", title="PDV Medidos")              # ✅ nombre más claro
+            ]
+        )
+
+        text = alt.Chart(df_hist).mark_text(
+            dy=-10, color="black", size=14
+        ).encode(
+            x="fecha_visit:T",
             y="total_ejecucion:Q",
             text="total_ejecucion:Q"
         )
-        return (bars + text).properties(width=500, height=200, title="Histórico de Ejecución por Día")
+        chart = (bars + text).properties(
+            width=500,
+            height=200,
+            title="Histórico de Ejecución por Día",
+            background="transparent"  # sin fondo blanco
+        ).configure_view(
+            stroke=None
+            ).configure_title(
+                fontSize=22,
+                fontWeight="bold",
+                anchor="start",
+                color="#000000"  # negro para el título
+            ).configure_axis(
+                labelColor="#000000",  # negro para etiquetas de ejes
+                titleColor="#000000"   # negro para títulos de ejes
+            ).configure_legend(
+                labelColor="#000000",
+                titleColor="#000000"
+            )
+
+        return chart
+
+
 
     # --- Layout KPIs + gráfico ---
     col1, col2 = st.columns([3, 2])
+    
+    con2 = col2.container(border=True)
     with col1:
         kpi_cards(df_filtrado)
-    with col2:
+    with con2:
         st.altair_chart(ejecucion_por_dia(df_filtrado), use_container_width=True)
 
 
@@ -216,8 +256,9 @@ def mostrar_dashboard(df_filtrado):
 
     
     # --- Mostrar con scroll ---
-    st.markdown("### Tabla de Visitas Detallada")
-    st.dataframe(tabla_final, use_container_width=True, height=500)
+    with st.container(border=True):
+        st.markdown("### Tabla de Visitas Detallada")
+        st.dataframe(tabla_final, use_container_width=True, height=500)
 
     
 

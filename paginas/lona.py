@@ -38,8 +38,8 @@ def mostrar_nueva_pagina(df_filtrado):
 
     # --- KPIs ---
     df_filtrado = df_filtrado.copy()
-    df_filtrado_lona = df_filtrado[df_filtrado["question_id_answer"].isin([1,2,3,4,8,9,10])]
-    lona = df_filtrado_lona[df_filtrado_lona["question_id_answer"] == 1]["visit_id_answer"].nunique()
+    df_filtrado_lona = df_filtrado[df_filtrado["type_id_visit"].isin([1])]
+    lona = df_filtrado_lona[df_filtrado_lona["question_id_answer"].isin([1,2,3,4,8,9,10])]["visit_id_answer"].nunique()
     finalizadas = df_filtrado_lona[df_filtrado_lona["status_visit"] == "Finalizado"]["visit_id_answer"].nunique()
     no_finalizadas = df_filtrado_lona[df_filtrado_lona["status_visit"].isin(["Pendiente", "En progreso"])]["visit_id_answer"].nunique()
     incidencias = df_filtrado_lona[df_filtrado_lona["sectionid_answer"].isin([2,5])]["visit_id_answer"].nunique()
@@ -51,7 +51,7 @@ def mostrar_nueva_pagina(df_filtrado):
     with col2:
         kpi_card("Finalizadas", f"{finalizadas:,}", icon="✅" )
     with col3:
-        kpi_card("Finalizadas", f"{no_finalizadas:,}", icon="❌")
+        kpi_card("No Finalizadas", f"{no_finalizadas:,}", icon="❌")
     with col4:
         kpi_card("Incidencias", f"{incidencias:,}", icon="🚨")
     with col5:
@@ -105,19 +105,20 @@ def mostrar_nueva_pagina(df_filtrado):
         # Tu tabla ya armada
         tabla = tabla_lona.copy()
         # Ajustar altura de filas y tamaño de texto en st.dataframe
-        st.markdown(
-            """
-            <style>
-            .stDataFrame tbody tr {
-                height: 80px !important;   /* grosor de las filas */
-            }
-            .stDataFrame tbody td div {
-                font-size: 16px !important;  /* tamaño del texto */
-            }
-            </style>
-            """,
-            unsafe_allow_html=True
-        )
+        # st.markdown(
+        #   """
+        #   <style>
+        #   .stDataFrame tbody tr {
+        #      height: 80px !important;   /* grosor de las filas */
+        #    }
+        #    .stDataFrame tbody td div {
+        #        font-size: 16px !important;  /* tamaño del texto */
+        #    }
+        #    </style>
+        
+        #   """,
+        #   unsafe_allow_html=True
+        #)
         tabla_final = tabla[[
             "Respuesta_Antes_Lona",
             "Foto_Despues_1",
@@ -154,15 +155,17 @@ def mostrar_nueva_pagina(df_filtrado):
 
 
         # Mostrar tu tabla
-        st.dataframe(
-            styled_df,
-            column_config={
-                "FOTO ANTES": st.column_config.ImageColumn("FOTO ANTES", width="small", ),
-                "FOTO DESPUES 1": st.column_config.ImageColumn("FOTO DESPUES 1", width="small"),
-                "FOTO DESPUES 2": st.column_config.ImageColumn("FOTO DESPUES 2", width="small")
-            },
-            use_container_width=True, height=1000
-        )
+        with st.container(border=True):
+
+            st.dataframe(
+                styled_df,
+                column_config={
+                    "FOTO ANTES": st.column_config.ImageColumn("FOTO ANTES", width="small", ),
+                    "FOTO DESPUES 1": st.column_config.ImageColumn("FOTO DESPUES 1", width="small"),
+                    "FOTO DESPUES 2": st.column_config.ImageColumn("FOTO DESPUES 2", width="small")
+                },
+                use_container_width=True, height=1000
+            )
 
 
 
@@ -210,13 +213,23 @@ def mostrar_nueva_pagina(df_filtrado):
                     .properties(
                         width=300,
                         height=300,
-                        title="INCIDENCIAS"
+                        title="Incidencias",
+                        background="transparent" )
 
-                    )
                     .configure_title(
-                        anchor="middle",   # centra el título
-                        offset=15          # agrega espacio extra respecto al borde superior
-                    ))
+                            fontSize=22,
+                            fontWeight="bold",
+                            anchor="start",
+                            color="#000000"  # negro
+                        )
+                    .configure_legend(
+                            labelColor="#000000",   # color de texto de las etiquetas
+                            titleColor="#000000",   # color del título de la leyenda
+                            labelFontSize=13,
+                            titleFontSize=14
+        )
+    )
+                    
 
             return chart
 
@@ -258,14 +271,24 @@ def mostrar_nueva_pagina(df_filtrado):
                     .properties(
                         width=300,
                         height=300,
-                        title="TAMAÑOS"
+                        title="Tamaños",
+                        background="transparent"
+                    
 
-                    )
+                                        )
                     .configure_title(
-                        anchor="middle",   # centra el título
-                        offset=15          # agrega espacio extra respecto al borde superior
-                    ))
-
+                            fontSize=22,
+                            fontWeight="bold",
+                            anchor="start",
+                            color="#000000"  # negro
+                    )
+                    .configure_legend(
+                            labelColor="#000000",   # color de texto de las etiquetas
+                            titleColor="#000000",   # color del título de la leyenda
+                            labelFontSize=13,
+                            titleFontSize=14
+                         )
+                    )
             return chart
         
 
@@ -297,7 +320,7 @@ def mostrar_nueva_pagina(df_filtrado):
                         legend=alt.Legend(title="Estado")                        
                     ),
                     tooltip=[
-                        alt.Tooltip("answer_answer:N", title="Estado"),
+                        alt.Tooltip("status_visit:N", title="Estado"),
                         alt.Tooltip("total:Q", title="Total"),
                         alt.Tooltip("porcentaje:Q", format=".1f", title="%")
                     ]
@@ -307,17 +330,36 @@ def mostrar_nueva_pagina(df_filtrado):
                     .properties(
                         width=300,
                         height=300,
-                        title="ESTADO DE FINALIZACIÓN"
+                        title="Estado de Finalización",
+                        background="transparent"
                     )
                     .configure_title(
-                        anchor="middle",   # centra el título
-                        offset=15          # agrega espacio extra respecto al borde superior
-                    ))
+                            fontSize=22,
+                            fontWeight="bold",
+                            anchor="start",
+                            color="#000000"  # negro
+                        )
+                        .configure_legend(
+                            labelColor="#000000",   # color de texto de las etiquetas
+                            titleColor="#000000",   # color del título de la leyenda
+                            labelFontSize=13,
+                            titleFontSize=14
+        )
+                    )
             
             return chart
         
-        st.altair_chart(chart_incidencias(df_filtrado_lona), use_container_width=True)
-        st.altair_chart(chart_tamaño(df_filtrado_lona), use_container_width=True)
-        st.altair_chart(chart_estado(df_filtrado), use_container_width=True)
+
+        # --- Primer gráfico ---
+        with st.container(border=True):
+            st.altair_chart(chart_incidencias(df_filtrado_lona), use_container_width=True)
+
+        # --- Segundo gráfico ---
+        with st.container(border=True):
+            st.altair_chart(chart_tamaño(df_filtrado_lona), use_container_width=True)
+
+        # --- Tercer gráfico ---
+        with st.container(border=True):
+            st.altair_chart(chart_estado(df_filtrado_lona), use_container_width=True)
 
 

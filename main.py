@@ -4,9 +4,10 @@ import pandas as pd
 from datetime import date, timedelta
 from authlib.integrations.requests_client import OAuth2Session
 import os
-from pages.dashboard import mostrar_dashboard
-from pages.lona import mostrar_nueva_pagina
-
+from paginas.dashboard import mostrar_dashboard
+from paginas.lona import mostrar_nueva_pagina
+from paginas.banner_rack import mostrar_nueva_pagina
+from paginas.incidencia import mostrar_incidencia
 
 # ---------------------
 # Cargar datos
@@ -16,33 +17,17 @@ df_final = load_data()
         # Menú lateral para seleccionar página
 pagina = st.sidebar.selectbox(
     "Selecciona una página",
-    ["Dashboard", "Reporte"]  # Los nombres de tus páginas
+    ["Ejecución", "Lona", "Banner + Rack", "Incidencias"],
+    index=0  # Los nombres de tus páginas
 )
 
 
-page_bg = """
-<style>
-    /* Fondo y color de texto */
-    body, [data-testid="stAppViewContainer"] {
-        background-color: #2E2E2E;
-        color: white;
-    }
-    .stText, .stMarkdown {
-        color: white;
-    }
-    /* Contenedor principal full width */
-    .block-container {
-        padding-left: 1rem;
-        padding-right: 1rem;
-        max-width: 100% !important;
-    }
-</style>
-"""
-st.markdown(page_bg, unsafe_allow_html=True)
-
-CLIENT_ID = st.secrets["GOOGLE_CLIENT_ID"]
-CLIENT_SECRET = st.secrets["GOOGLE_CLIENT_SECRET"]
-REDIRECT_URI = "https://appfemsa-eeoerf69vjjsguyqqxxpjg.streamlit.app"
+#CLIENT_ID = st.secrets["GOOGLE_CLIENT_ID"]
+#CLIENT_SECRET = st.secrets["GOOGLE_CLIENT_SECRET"]
+CLIENT_ID = "581193155513-ib71ujm4uqa84eballc37gmebj4om8pi.apps.googleusercontent.com"
+CLIENT_SECRET = "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"
+REDIRECT_URI = "http://localhost:8501"
+#REDIRECT_URI = "https://appfemsa-eeoerf69vjjsguyqqxxpjg.streamlit.app"
 
 
 AUTHORIZATION_URL = "https://accounts.google.com/o/oauth2/auth"
@@ -57,9 +42,9 @@ def login_with_google():
         scope=["openid", "email", "profile"],
         redirect_uri=REDIRECT_URI,
     )
-    print(st.query_params)
+#    st.write(st.query_params)
     if "code" in st.query_params:
-        code = st.query_params["code"][0]
+        code = st.query_params["code"]
         token = oauth.fetch_token(
             TOKEN_URL,
             code=code,
@@ -70,7 +55,6 @@ def login_with_google():
         user_info = oauth.get(USER_INFO_URL).json()
         st.session_state["user_email"] = user_info["email"]
         st.session_state["user_name"] = user_info.get("name", "")
-        st.experimental_set_query_params()
     else:
         auth_url, _ = oauth.create_authorization_url(
             AUTHORIZATION_URL, access_type="offline", prompt="consent"
@@ -82,6 +66,28 @@ def login_with_google():
 if "user_email" not in st.session_state:
     login_with_google()
 else:
+
+
+    page_bg = """
+        <style>
+            /* Fondo y color de texto */
+            body, [data-testid="stAppViewContainer"] {
+                background-color: #3C3C3C;  /* Gris suave */
+                color: black;               /* Texto oscuro para contraste */
+            }
+            .stText, .stMarkdown {
+                color: black;
+            }
+            /* Contenedor principal full width */
+            .block-container {
+                padding-left: 1rem;
+                padding-right: 1rem;
+                max-width: 100% !important;
+            }
+        </style>
+        """
+    st.markdown(page_bg, unsafe_allow_html=True)
+
     st.success(f"Hola, {st.session_state['user_name']} ({st.session_state['user_email']})")        
 
 
@@ -135,24 +141,28 @@ else:
         if tamano:
             df_filtrado = df_filtrado[df_filtrado["TamañoAsignado_answer"].isin(tamano)]
 
-        # ---------------------
-        # Mostrar resultados filtrados
-        # ---------------------
-        st.write("Tus datos filtrados:")
-        st.dataframe(df_filtrado)
-        # ---------------------
+
+
 
 
         # Importar el contenido según la página
         # ---------------------
-        if pagina == "Dashboard":
-            from pages.dashboard import mostrar_dashboard
+        if pagina == "Ejecución":
+            from paginas.dashboard import mostrar_dashboard
             mostrar_dashboard(df_filtrado)
 
 
-        elif pagina == "Reporte":
-            from pages.lona import mostrar_nueva_pagina
+        elif pagina == "Lona":
+            from paginas.lona import mostrar_nueva_pagina
             mostrar_nueva_pagina(df_filtrado)
+
+        elif pagina == "Banner + Rack":
+            from paginas.banner_rack import mostrar_nueva_pagina
+            mostrar_nueva_pagina(df_filtrado)
+
+        elif pagina == "Incidencias":
+            from paginas.incidencia import mostrar_incidencia
+            mostrar_incidencia(df_filtrado)
 
 
 
