@@ -3,40 +3,56 @@ import pandas as pd
 import plotly.graph_objects as go
 import altair as alt
 import pandas as pd
+import base64
+from pathlib import Path
+
+def load_base64_image(path):
+    with open(path, "rb") as img_file:
+        return base64.b64encode(img_file.read()).decode("utf-8")
 
 def mostrar_incidencia(df_filtrado):
     st.title("Incidencias")
 
 
     def kpi_card(title, value, icon=None, width="100%"):
-            icon_html = f"<div style='font-size: 20px; margin-right: 10px;'>{icon}</div>" if icon else ""
-            
-            card_html = f"""
-            <div style="
-                background-color: #111;  
-                border-radius: 12px;
-                padding: 12px;
-                margin: 5px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                color: white;
-                height: 90px;
-                width: {width};
-                box-shadow: 0px 2px 6px rgba(0,0,0,0.3);
-            ">
-                {icon_html}
-                <div style="text-align: center; width: 100%;">
-                    <div style="font-size: 12px; font-weight: bold; color: white;">
-                        {title}
-                    </div>
-                    <div style="font-size: 22px; font-weight: bold; color: white; margin-top: 4px;">
-                        {value}
-                    </div>
+        icon_html = ""
+        if icon:
+            icon_path = Path(icon)
+            if icon_path.exists():
+                # Convertir imagen a base64
+                img_base64 = load_base64_image(icon_path)
+                icon_html = f"<img src='data:image/png;base64,{img_base64}' style='width:50px; height:50px; margin-right:10px;'>"
+            else:
+                icon_html = f"<div style='font-size: 24px; margin-right: 10px;'>{icon}</div>"
+
+        card_html = f"""
+        <div style="
+            background-color: #111;  
+            border-radius: 12px;
+            padding: 12px;
+            margin: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            height: 90px;
+            width: {width};
+            box-shadow: 0px 2px 6px rgba(0,0,0,0.3);
+        ">
+            {icon_html}
+            <div style="text-align: center; width: 100%;">
+                <div style="font-size: 12px; font-weight: bold; color: white;">
+                    {title}
+                </div>
+                <div style="font-size: 28px; font-weight: bold; color: white; margin-top: 4px;">
+                    {value}
                 </div>
             </div>
-            """
-            st.markdown(card_html, unsafe_allow_html=True)
+        </div>
+        """
+        st.markdown(card_html, unsafe_allow_html=True)
+ 
+
 
     
     # --- KPIs ---
@@ -47,17 +63,18 @@ def mostrar_incidencia(df_filtrado):
     fotos = df_filtrado_incidencias[df_filtrado_incidencias["answer_answer"].astype(str).str.contains(".jpg", na=False)]["visit_id_answer"].count()
     VisitasConComentario = ( df_filtrado_incidencias[ (df_filtrado_incidencias["question_id_answer"].isin([7, 10])) & (df_filtrado_incidencias["answer_answer"].notna()) & (df_filtrado_incidencias["answer_answer"] != "") ]["visit_id_answer"] .nunique())
 
+
     # Fila superior con KPIs + filtro
     col1, col2, col3, col4, col5 = st.columns([1,1,1,1,1.2])
 
     with col1:
-        kpi_card("Incidencias Lona", f"{incidencias_lona:,}", icon="🪧")
+        kpi_card("Incidencias Lona", f"{incidencias_lona:,}", icon="imagenes/lona.png")
     with col2:
-        kpi_card("Incidencias Banner", f"{incidencias_banner:,}", icon="🖼" )
+        kpi_card("Incidencias Banner + Rack", f"{incidencias_banner:,}", icon="imagenes/diseno-de-banner.png")
     with col3:
-        kpi_card("Fotos", f"{fotos}", icon="📷")
+        kpi_card("Fotos", f"{fotos}", icon="imagenes/galeria-de-imagenes (1).png")
     with col4:
-        kpi_card("Incidencias con Comentario", f"{VisitasConComentario:,}", icon="💬")
+        kpi_card("Incidencias con Comentario", f"{VisitasConComentario:,}", icon="imagenes/nuevo-mensaje.png")
     with col5:
         # título encima
         st.markdown(
@@ -107,6 +124,97 @@ def mostrar_incidencia(df_filtrado):
         .reset_index(name="Finalizadas")
     )
 
+    # --- Tabla matriz de Incidencias ---
+    # Visitas Únicas
+    tabla = df_filtrado_incidencias.drop_duplicates(subset=["visit_id_answer"])[[
+                "visit_id_answer",
+                "store_sap_store",
+                "store_name_store",
+                "store_zone_store",
+                "store_region_store",
+                "name_type",
+                "FechaHora_Menos6h_visit",
+                "status_visit",
+                "name_provider"
+
+        ]]
+
+    prueba_fot = df_filtrado_incidencias.loc[df_filtrado_incidencias["question_id_answer"].isin([6,9]), ["visit_id_answer", "answer_answer"]].dropna(subset=["answer_answer"])
+    prueba_fot = prueba_fot.groupby("visit_id_answer")["answer_answer"].max().reset_index()
+    prueba_fot.rename(columns={"answer_answer": "Prueba_fotografica"}, inplace=True)
+
+    tabla = tabla.merge(prueba_fot[["visit_id_answer", "Prueba_fotografica"]], 
+                            on="visit_id_answer", 
+                            how="left")
+
+    prueba_incidencia = (
+            df_filtrado_incidencias[df_filtrado_incidencias["sectionid_answer"].isin([2, 5])]
+            .loc[:, ["visit_id_answer", "sectionid_answer"]]
+            .dropna(subset=["sectionid_answer"])
+        )
+
+    prueba_incidencia["Incidencia"] = prueba_incidencia["sectionid_answer"].map({
+            2: "Lona",
+            5: "Banner + Rack"
+        })
+
+    prueba_incidencia = (
+            prueba_incidencia.groupby("visit_id_answer")["Incidencia"].first().reset_index()
+        )
+
+    tabla = tabla.merge(prueba_incidencia[["visit_id_answer", "Incidencia"]], 
+                            on="visit_id_answer", 
+                            how="left")
+
+
+    comentario = df_filtrado_incidencias[df_filtrado_incidencias["question_id_answer"].isin([7, 10])]
+    comentario = comentario.groupby("visit_id_answer")["answer_answer"].first().reset_index(name = "comentario")
+
+    tabla = tabla.merge(comentario,
+                            on="visit_id_answer",
+                            how = "left")
+        
+    motivo = df_filtrado_incidencias[df_filtrado_incidencias["question_id_answer"].isin([5, 8])]
+    motivo = motivo.groupby("visit_id_answer")["answer_answer"].first().reset_index(name = "motivo")
+
+    tabla = tabla.merge(motivo,
+                            on="visit_id_answer",
+                            how = "left")
+    
+    tabla["Tiene Comentario"] = tabla["comentario"].apply(
+    lambda x: "Sí" if pd.notna(x) and str(x).strip() != "" else "No"
+)
+
+    tabla_final = tabla[[
+            "Prueba_fotografica",
+            "Incidencia",
+            "FechaHora_Menos6h_visit",
+            "store_zone_store",
+            "store_region_store",
+            "name_provider",
+            "store_name_store",
+            "store_sap_store",
+            "motivo",
+            "comentario",
+            "Tiene Comentario"
+        ]]
+
+        # --- Seleccionar y renombrar columnas finales ---
+    tabla_final.rename(columns={
+            "Prueba_fotografica" : "PRUEBA FOTOGRÁFICA",
+            "Incidencia": "INCIDENCIA",
+            "FechaHora_Menos6h_visit": "FECHA VISITA",
+            "store_zone_store": "ZONA",
+            "store_region_store": "REGION",
+            "name_provider": "PROVEEDOR",
+            "store_name_store": "PDV",
+            "store_sap_store": "SAP",
+            "motivo": "MOTIVO",
+            "comentario": "COMENTARIO",
+            "Tiene Comentario": "TIENE COMENTARIO"
+        }, inplace=True)
+
+
     col1, col2 = st.columns([5, 3])  # tabla grande a la izquierda, gráficos a la derecha
 
     with col1:
@@ -136,7 +244,7 @@ def mostrar_incidencia(df_filtrado):
             y=resumen["Finalizadas"],
             name="Finalizadas",
             mode="lines+markers+text",
-            line=dict(color="#0B6623", width=2),
+            line=dict(color="#511818", width=2),
             text=resumen["Finalizadas"],
             textposition="top center",
             textfont=dict(color="black", size=12)
@@ -164,10 +272,34 @@ def mostrar_incidencia(df_filtrado):
             template="plotly_white",                        # base blanca pero transparente
             paper_bgcolor="rgba(0,0,0,0)",                  # fondo total transparente
             plot_bgcolor="rgba(0,0,0,0)",                   # fondo del área de trazado transparente
-            height=550
+            height=350
         )
         with st.container(border=True):
             st.plotly_chart(fig, use_container_width=True)
+
+                # título encima
+        st.markdown(
+            "<div style='font-size:12px; font-weight:bold; color:black; text-align:center;'>"
+            "Tiene Comentario</div>",
+            unsafe_allow_html=True
+        )
+
+
+        opciones_incidencia = ["Todas"] + tabla_final["TIENE COMENTARIO"].unique().tolist()
+
+        # selectbox sin recuadro KPI
+        tiene_comentario = st.selectbox(
+            " ",
+            opciones_incidencia,
+            label_visibility="collapsed",
+            key="tiene_comentario"
+        )
+
+        # aplicar filtro
+        if tiene_comentario != "Todas":
+            tabla_final = tabla_final[
+                tabla_final["TIENE COMENTARIO"] ==  tiene_comentario
+            ]
 
     with col2:
 
@@ -193,7 +325,7 @@ def mostrar_incidencia(df_filtrado):
             data["porcentaje"] = (data["total"] / data["total"].sum() * 100).round(1)
 
             # Colores personalizados
-            colores = ["#FF0000", "#666666", "#4CAF50"]  # verde para “sin incidencias”
+            colores = ["#FF0000", "#666666", "#6B1F1F"]  # verde para “sin incidencias”
 
             # Pie chart
             pie = (
@@ -217,7 +349,7 @@ def mostrar_incidencia(df_filtrado):
             chart = (
                 pie.properties(
                     width=300,
-                    height=250,
+                    height=200,
                     title="Incidencias",
                     background="transparent" )
 
@@ -277,7 +409,7 @@ def mostrar_incidencia(df_filtrado):
             chart = (pie 
                     .properties(
                         width=300,
-                        height=250,
+                        height=200,
                         title="Tipología de Incidencias",
                         background="transparent" )
 
@@ -301,90 +433,7 @@ def mostrar_incidencia(df_filtrado):
         with st.container(border=True):
             st.altair_chart(chart_incidencias(df_filtrado_incidencias), use_container_width=True)
 
-        # --- Tabla matriz ---
-        # Visitas Únicas
-    tabla = df_filtrado_incidencias.drop_duplicates(subset=["visit_id_answer"])[[
-                "visit_id_answer",
-                "store_sap_store",
-                "store_name_store",
-                "store_zone_store",
-                "store_region_store",
-                "name_type",
-                "FechaHora_Menos6h_visit",
-                "status_visit",
-                "name_provider"
 
-        ]]
-
-    prueba_fot = df_filtrado_incidencias.loc[df_filtrado_incidencias["question_id_answer"].isin([6,9]), ["visit_id_answer", "answer_answer"]].dropna(subset=["answer_answer"])
-    prueba_fot = prueba_fot.groupby("visit_id_answer")["answer_answer"].max().reset_index()
-    prueba_fot.rename(columns={"answer_answer": "Prueba_fotografica"}, inplace=True)
-
-    tabla = tabla.merge(prueba_fot[["visit_id_answer", "Prueba_fotografica"]], 
-                            on="visit_id_answer", 
-                            how="left")
-
-    prueba_incidencia = (
-            df_filtrado_incidencias[df_filtrado_incidencias["sectionid_answer"].isin([2, 5])]
-            .loc[:, ["visit_id_answer", "sectionid_answer"]]
-            .dropna(subset=["sectionid_answer"])
-        )
-
-    prueba_incidencia["Incidencia"] = prueba_incidencia["sectionid_answer"].map({
-            2: "Lona",
-            5: "Banner + Rack"
-        })
-
-    prueba_incidencia = (
-            prueba_incidencia.groupby("visit_id_answer")["Incidencia"].first().reset_index()
-        )
-
-    tabla = tabla.merge(prueba_incidencia[["visit_id_answer", "Incidencia"]], 
-                            on="visit_id_answer", 
-                            how="left")
-
-
-    comentario = df_filtrado_incidencias[df_filtrado_incidencias["question_id_answer"].isin([7, 10])]
-    comentario = comentario.groupby("visit_id_answer")["answer_answer"].first().reset_index(name = "comentario")
-
-    tabla = tabla.merge(comentario,
-                            on="visit_id_answer",
-                            how = "left")
-        
-    motivo = df_filtrado_incidencias[df_filtrado_incidencias["question_id_answer"].isin([5, 8])]
-    motivo = motivo.groupby("visit_id_answer")["answer_answer"].first().reset_index(name = "motivo")
-
-    tabla = tabla.merge(motivo,
-                            on="visit_id_answer",
-                            how = "left")
-
-    tabla_final = tabla[[
-            "Prueba_fotografica",
-            "Incidencia",
-            "FechaHora_Menos6h_visit",
-            "store_zone_store",
-            "store_region_store",
-            "name_provider",
-            "store_name_store",
-            "store_sap_store",
-            "motivo",
-            "comentario"
-        ]]
-
-        # --- Seleccionar y renombrar columnas finales ---
-    tabla_final.rename(columns={
-            "Prueba_fotografica" : "PRUEBA FOTOGRÁFICA",
-            "Incidencia": "INCIDENCIA",
-            "FechaHora_Menos6h_visit": "FECHA VISITA",
-            "store_zone_store": "ZONA",
-            "store_region_store": "REGION",
-            "name_provider": "PROVEEDOR",
-            "store_name_store": "PDV",
-            "store_sap_store": "SAP",
-            "motivo": "MOTIVO",
-
-            "comentario": "COMENTARIO"
-        }, inplace=True)
 
 
         # Aplicar estilo para aumentar altura de filas

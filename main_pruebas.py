@@ -15,36 +15,58 @@ from paginas.incidencia import mostrar_incidencia
 df_final = load_data()
 
 # ---------------------
-# Menú lateral
+# Logo de la pagina
 # ---------------------
-pagina = st.sidebar.selectbox(
-    "Selecciona una página",
-    ["Ejecución", "Lona", "Banner + Rack", "Incidencias"],
-    index=0
+
+st.set_page_config(
+    page_title="Dashboard FEMSA",          # Título que aparece en la pestaña
+    page_icon="imagenes/lucro-inside.png" # Ruta a tu logo
 )
 
 # ---------------------
-# Estilos básicos
+# Menú lateral
 # ---------------------
+
+
+with st.sidebar:
+    st.image("imagenes/logo FEMSA-05.png", use_container_width=False)
+
+
+pagina = st.sidebar.selectbox(
+    "Selecciona una página",
+    ["Lona", "Banner + Rack", "Incidencias"],
+    index=0
+)
+
 page_bg = """
     <style>
+        /* Fondo y texto general */
         body, [data-testid="stAppViewContainer"] {
             background-color: #dddddd;  
             color: black;               
         }
+
+        /* Texto */
         .stText, .stMarkdown {
             color: black;
         }
+
+        /* Contenedor principal */
         .block-container {
             padding-left: 1rem;
             padding-right: 1rem;
+            padding-top: 0rem !important;   /* elimina el espacio superior */
             max-width: 100% !important;
+        }
+
+        /* 🔹 Oculta o minimiza el header de Streamlit */
+        [data-testid="stHeader"] {
+            height: 0rem;
+            background: none;
         }
     </style>
 """
 st.markdown(page_bg, unsafe_allow_html=True)
-
-st.success("Modo pruebas activado (sin login).")
 
 # ---------------------
 # Filtros
@@ -52,17 +74,34 @@ st.success("Modo pruebas activado (sin login).")
 df_filtrado = df_final.copy()
 df_filtrado["FechaHora_Menos6h"] = pd.to_datetime(df_filtrado["FechaHora_Menos6h_visit"])
 
+# ---------------------
+# Logos en la barra lateral
+# ---------------------
+
+
 fecha_inicio = st.sidebar.date_input("Fecha inicio")
 fecha_fin = st.sidebar.date_input("Fecha fin")
+# Obtener los periodos únicos
+periodos = sorted(df_filtrado["Periodo_visit"].dropna().unique())
 
-region = st.sidebar.multiselect("Región", df_filtrado["store_region_store"].dropna().unique())
-proveedor = st.sidebar.multiselect("Proveedor", df_filtrado["name_provider"].dropna().unique())
-periodo = st.sidebar.multiselect("Periodo", df_filtrado["Periodo_visit"].dropna().unique())
+# --- Filtro con valor predeterminado ---
+periodo = st.sidebar.multiselect(
+    "Periodo",
+    options=periodos,
+    default=["Periodo 5"] if "Periodo 5" in periodos else []  # 👈 Predeterminado
+)
 tipo_actividad = st.sidebar.multiselect("Tipo de actividad", df_filtrado["name_type"].dropna().unique())
 zona = st.sidebar.multiselect("Zona", df_filtrado["store_zone_store"].dropna().unique())
+region = st.sidebar.multiselect("Región", df_filtrado["store_region_store"].dropna().unique())
+proveedor = st.sidebar.multiselect("Proveedor", df_filtrado["name_provider"].dropna().unique())
 pdv_id = st.sidebar.multiselect("PDV", df_filtrado["store_name_store"].dropna().unique())
-usuario = st.sidebar.multiselect("Usuario", df_filtrado["full_name_user_provider"].dropna().unique())
+pdv_sap = st.sidebar.multiselect("SAP", df_filtrado["store_sap_store"].dropna().unique())
 tamano = st.sidebar.multiselect("Tamaño", df_filtrado["TamañoAsignado_answer"].dropna().unique())
+usuario = st.sidebar.multiselect("Usuario", df_filtrado["full_name_user_provider"].dropna().unique())
+
+with st.sidebar:
+
+    st.image("imagenes/Logo lucro-05.png", use_container_width=False)
 
 # ---------------------
 # Aplicar filtros
@@ -85,6 +124,8 @@ if zona:
     df_filtrado = df_filtrado[df_filtrado["store_zone_store"].isin(zona)]
 if pdv_id:
     df_filtrado = df_filtrado[df_filtrado["store_name_store"].isin(pdv_id)]
+if pdv_sap:
+    df_filtrado = df_filtrado[df_filtrado["store_sap_store"].isin(pdv_sap)]
 if usuario:
     df_filtrado = df_filtrado[df_filtrado["full_name_user_provider"].isin(usuario)]
 if tamano:
@@ -93,10 +134,7 @@ if tamano:
 # ---------------------
 # Navegación entre páginas
 # ---------------------
-if pagina == "Ejecución":
-    mostrar_dashboard(df_filtrado)
-
-elif pagina == "Lona":
+if pagina == "Lona":
     mostrar_lona(df_filtrado)
 
 elif pagina == "Banner + Rack":

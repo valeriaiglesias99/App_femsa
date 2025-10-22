@@ -32,4 +32,7 @@ def load_data():
         type, left_on="type_id_visit", right_on="id_type", how="left"
     )
 
+    df_final["Periodo_visit"] = df_final["Periodo_visit"].astype(str).replace("Periodo 1", "Periodo 5")
+
+
     return df_final
