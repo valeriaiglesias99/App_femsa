@@ -78,9 +78,6 @@ df_filtrado["FechaHora_Menos6h"] = pd.to_datetime(df_filtrado["FechaHora_Menos6h
 # Logos en la barra lateral
 # ---------------------
 
-
-fecha_inicio = st.sidebar.date_input("Fecha inicio")
-fecha_fin = st.sidebar.date_input("Fecha fin")
 # Obtener los periodos únicos
 periodos = sorted(df_filtrado["Periodo_visit"].dropna().unique())
 
@@ -90,6 +87,23 @@ periodo = st.sidebar.multiselect(
     options=periodos,
     default=["Periodo 5"] if "Periodo 5" in periodos else []  # 👈 Predeterminado
 )
+
+# --- Aplicar filtro de periodo antes de definir fechas ---
+if periodo:
+    df_filtrado = df_filtrado[df_filtrado["Periodo_visit"].isin(periodo)]
+
+# --- Ahora, generar rango de fechas según el periodo seleccionado ---
+if not df_filtrado.empty:
+    min_fecha = df_filtrado["FechaHora_Menos6h"].dt.date.min()
+    max_fecha = df_filtrado["FechaHora_Menos6h"].dt.date.max()
+else:
+    min_fecha = None
+    max_fecha = None
+
+# --- Filtros de fecha dinámicos según el periodo seleccionado ---
+fecha_inicio = st.sidebar.date_input("Fecha inicio", value=min_fecha)
+fecha_fin = st.sidebar.date_input("Fecha fin", value=max_fecha)
+
 tipo_actividad = st.sidebar.multiselect("Tipo de actividad", df_filtrado["name_type"].dropna().unique())
 zona = st.sidebar.multiselect("Zona", df_filtrado["store_zone_store"].dropna().unique())
 region = st.sidebar.multiselect("Región", df_filtrado["store_region_store"].dropna().unique())
@@ -106,16 +120,15 @@ with st.sidebar:
 # ---------------------
 # Aplicar filtros
 # ---------------------
+if proveedor:
+    df_filtrado = df_filtrado[df_filtrado["name_provider"].isin(proveedor)]
 if fecha_inicio and fecha_fin:
     df_filtrado = df_filtrado[
         (df_filtrado["FechaHora_Menos6h"].dt.date >= fecha_inicio) &
         (df_filtrado["FechaHora_Menos6h"].dt.date <= fecha_fin)
     ]
-
 if region:
     df_filtrado = df_filtrado[df_filtrado["store_region_store"].isin(region)]
-if proveedor:
-    df_filtrado = df_filtrado[df_filtrado["name_provider"].isin(proveedor)]
 if periodo:
     df_filtrado = df_filtrado[df_filtrado["Periodo_visit"].isin(periodo)]
 if tipo_actividad:
