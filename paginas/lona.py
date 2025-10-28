@@ -200,6 +200,8 @@ def mostrar_nueva_pagina(df_filtrado):
 
     with col1:
 
+
+
         antes_lona = df_filtrado_lona.loc[df_filtrado_lona["question_id_answer"] == 1, ["visit_id_answer", "answer_answer"]]
         antes_lona = antes_lona.groupby("visit_id_answer")["answer_answer"].max().reset_index()
         antes_lona.rename(columns={"answer_answer": "Respuesta_Antes_Lona"}, inplace=True)
@@ -235,10 +237,15 @@ def mostrar_nueva_pagina(df_filtrado):
 
         # Agregar columnas directas desde df_final
         info_extra = df_filtrado_lona[[
-            "visit_id_answer", "FechaHora_Menos6h_visit", "store_zone_store", "store_region_store", "name_provider", "store_name_store", "store_sap_store"
+            "id_visit", "status_visit", "FechaHora_Menos6h_visit", "store_zone_store", "store_region_store", "name_provider", "store_name_store", "store_sap_store"
         ]].drop_duplicates()
 
-        tabla_lona = tabla_lona.merge(info_extra, on="visit_id_answer", how="left")
+        tabla_lona = info_extra.merge(
+            tabla_lona,
+            left_on=["id_visit"],   # columna clave en tabla_lona
+            right_on=["visit_id_answer"],   # columna clave en info_extra
+            how="left"
+        )
         # Tu tabla ya armada
         tabla = tabla_lona.copy()
         # Ajustar altura de filas y tamaño de texto en st.dataframe
@@ -265,6 +272,7 @@ def mostrar_nueva_pagina(df_filtrado):
             "store_region_store",
             "store_name_store",
             "store_sap_store",
+            "status_visit",
             "Respuesta_Tamano_Lonaqr",
             "Respuesta_Tamano_Lona",
             "name_provider"
@@ -279,6 +287,7 @@ def mostrar_nueva_pagina(df_filtrado):
             "store_region_store": "REGION",
             "store_name_store": "PDV",
             "store_sap_store": "SAP",
+            "status_visit": "ESTADO",
             "Respuesta_Tamano_Lonaqr": "TAMAÑO QR",
             "Respuesta_Tamano_Lona": "TAMAÑO SEL",
             "name_provider": "PROVEEDOR"

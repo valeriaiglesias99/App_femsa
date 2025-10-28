@@ -93,25 +93,26 @@ if periodo:
     df_filtrado = df_filtrado[df_filtrado["Periodo_visit"].isin(periodo)]
 
 # --- Ahora, generar rango de fechas según el periodo seleccionado ---
-if not df_filtrado.empty:
-    min_fecha = df_filtrado["FechaHora_Menos6h"].dt.date.min()
-    max_fecha = df_filtrado["FechaHora_Menos6h"].dt.date.max()
-else:
-    min_fecha = None
-    max_fecha = None
+#if not df_filtrado.empty:
+#    min_fecha = df_filtrado["FechaHora_Menos6h"].dt.date.min()
+#    max_fecha = df_filtrado["FechaHora_Menos6h"].dt.date.max()
+#else:
+#    min_fecha = None
+#    max_fecha = None
 
 # --- Filtros de fecha dinámicos según el periodo seleccionado ---
-fecha_inicio = st.sidebar.date_input("Fecha inicio", value=min_fecha)
-fecha_fin = st.sidebar.date_input("Fecha fin", value=max_fecha)
+#fecha_inicio = st.sidebar.date_input("Fecha inicio", value=min_fecha)
+#fecha_fin = st.sidebar.date_input("Fecha fin", value=max_fecha)
 
 tipo_actividad = st.sidebar.multiselect("Tipo de actividad", df_filtrado["name_type"].dropna().unique())
+pdv_sap = st.sidebar.multiselect("SAP", df_filtrado["store_sap_store"].dropna().unique())
 zona = st.sidebar.multiselect("Zona", df_filtrado["store_zone_store"].dropna().unique())
 region = st.sidebar.multiselect("Región", df_filtrado["store_region_store"].dropna().unique())
 proveedor = st.sidebar.multiselect("Proveedor", df_filtrado["name_provider"].dropna().unique())
 pdv_id = st.sidebar.multiselect("PDV", df_filtrado["store_name_store"].dropna().unique())
-pdv_sap = st.sidebar.multiselect("SAP", df_filtrado["store_sap_store"].dropna().unique())
 tamano = st.sidebar.multiselect("Tamaño", df_filtrado["TamañoAsignado_answer"].dropna().unique())
 usuario = st.sidebar.multiselect("Usuario", df_filtrado["full_name_user_provider"].dropna().unique())
+estado = st.sidebar.multiselect("Estado Visita", df_filtrado["status_visit"].dropna().unique())
 
 with st.sidebar:
 
@@ -122,11 +123,11 @@ with st.sidebar:
 # ---------------------
 if proveedor:
     df_filtrado = df_filtrado[df_filtrado["name_provider"].isin(proveedor)]
-if fecha_inicio and fecha_fin:
-    df_filtrado = df_filtrado[
-        (df_filtrado["FechaHora_Menos6h"].dt.date >= fecha_inicio) &
-        (df_filtrado["FechaHora_Menos6h"].dt.date <= fecha_fin)
-    ]
+#if fecha_inicio and fecha_fin:
+#    df_filtrado = df_filtrado[
+#        (df_filtrado["FechaHora_Menos6h"].dt.date >= fecha_inicio) &
+#        (df_filtrado["FechaHora_Menos6h"].dt.date <= fecha_fin)
+#    ]
 if region:
     df_filtrado = df_filtrado[df_filtrado["store_region_store"].isin(region)]
 if periodo:
@@ -143,7 +144,8 @@ if usuario:
     df_filtrado = df_filtrado[df_filtrado["full_name_user_provider"].isin(usuario)]
 if tamano:
     df_filtrado = df_filtrado[df_filtrado["TamañoAsignado_answer"].isin(tamano)]
-
+if estado:
+    df_filtrado = df_filtrado[df_filtrado["status_visit"].isin(estado)]
 # ---------------------
 # Navegación entre páginas
 # ---------------------

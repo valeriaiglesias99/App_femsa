@@ -275,13 +275,18 @@ def mostrar_nueva_pagina(df_filtrado):
         tabla_lona = tabla_lona.merge(tamano_banner, on="visit_id_answer", how="left")
         tabla_lona = tabla_lona.merge(posicion_rack, on="visit_id_answer", how="left")
 
-        # Agregar columnas directas desde df_final
+          # Agregar columnas directas desde df_final
         info_extra = df_filtrado_lona[[
-            "visit_id_answer", "FechaHora_Menos6h_visit", "store_zone_store", "store_region_store", "name_provider", "store_name_store", "store_sap_store"
+            "id_visit", "status_visit", "FechaHora_Menos6h_visit", "store_zone_store", "store_region_store", "name_provider", "store_name_store", "store_sap_store"
         ]].drop_duplicates()
 
-        tabla_lona = tabla_lona.merge(info_extra, on="visit_id_answer", how="left")
-        # Tu tabla ya armada
+        tabla_lona = info_extra.merge(
+            tabla_lona,
+            left_on=["id_visit"],   # columna clave en tabla_lona
+            right_on=["visit_id_answer"],   # columna clave en info_extra
+            how="left"
+        )
+        #
         tabla = tabla_lona.copy()
         # Ajustar altura de filas y tamaño de texto en st.dataframe
 
@@ -294,6 +299,7 @@ def mostrar_nueva_pagina(df_filtrado):
             "store_region_store",
             "store_name_store",
             "store_sap_store",
+            "status_visit",
             "Respuesta_Tamano_bannerqr",
             "Respuesta_Tamano_banner",
             "Posicion_Rack",
@@ -309,6 +315,7 @@ def mostrar_nueva_pagina(df_filtrado):
             "store_region_store": "REGION",
             "store_name_store": "PDV",
             "store_sap_store": "SAP",
+            "status_visit": "ESTADO",
             "Respuesta_Tamano_bannerqr": "TAMAÑO QR",
             "Respuesta_Tamano_banner": "TAMAÑO SEL",
             "Posicion_Rack": "POSICIÓN RACK",
