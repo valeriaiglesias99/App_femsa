@@ -92,13 +92,14 @@ def mostrar_nueva_pagina(df_filtrado):
     # --- KPIs ---
     df_filtrado = df_filtrado.copy()
     df_filtrado_lona = df_filtrado[df_filtrado["type_id_visit"].isin([1])]
+    df_filtrado_lona_conteo = df_filtrado_lona["id_visit"].nunique()
     lona = df_filtrado_lona[df_filtrado_lona["question_id_answer"].isin([1,2,3,4,8,9,10])]["visit_id_answer"].nunique()
-    finalizadas = df_filtrado_lona[df_filtrado_lona["status_visit"] == "Finalizado"]["visit_id_answer"].nunique()
-    no_finalizadas = df_filtrado_lona[df_filtrado_lona["status_visit"].isin(["Pendiente", "En progreso"])]["visit_id_answer"].nunique()
-    incidencias = df_filtrado_lona[df_filtrado_lona["sectionid_answer"].isin([2,5])]["visit_id_answer"].nunique()
+    finalizadas = df_filtrado_lona[df_filtrado_lona["status_visit"] == "Finalizado"]["id_visit"].nunique()
+    no_finalizadas = df_filtrado_lona[df_filtrado_lona["status_visit"].isin(["Pendiente", "En progreso"])]["id_visit"].nunique()
+    incidencias = df_filtrado_lona[df_filtrado_lona["id_section"].isin([2,5])]["visit_id_answer"].nunique()
     fotos = df_filtrado_lona[df_filtrado_lona["answer_answer"].astype(str).str.contains(".jpg", na=False)]["visit_id_answer"].count()
-    pct_finalizadas = (finalizadas / lona * 100) if lona > 0 else 0
-    pct_no_finalizadas = (no_finalizadas / lona * 100) if lona > 0 else 0
+    pct_finalizadas = (finalizadas / df_filtrado_lona_conteo * 100) if df_filtrado_lona_conteo > 0 else 0
+    pct_no_finalizadas = (no_finalizadas / df_filtrado_lona_conteo * 100) if df_filtrado_lona_conteo > 0 else 0
     pct_incidencias = (incidencias / finalizadas * 100) if finalizadas > 0 else 0
 
 
@@ -131,10 +132,10 @@ def mostrar_nueva_pagina(df_filtrado):
     # --- Gráfico de ejecución por día ---
     def ejecucion_por_dia(df_final):
         df_hist = (
-            df_final.groupby("fecha_visit")["visit_id_answer"]
+            df_final.groupby("fecha_visit")["id_visit"]
             .nunique()
             .reset_index()
-            .rename(columns={"visit_id_answer": "total_ejecucion"})
+            .rename(columns={"id_visit": "total_ejecucion"})
         )
 
         bars = alt.Chart(df_hist).mark_bar(
@@ -294,17 +295,17 @@ def mostrar_nueva_pagina(df_filtrado):
         }, inplace=True)
 
         # Aplicar estilo para aumentar altura de filas
-        styled_df = tabla_final.style.set_properties(**{
-            'height': '200px',  # alto de la fila
-            'line-height': '50px'  # también ajusta el texto vertical
-        })
+        #styled_df = tabla_final.style.set_properties(**{
+        #    'height': '200px',  # alto de la fila
+        #    'line-height': '50px'  # también ajusta el texto vertical
+        #})
 
 
         # Mostrar tu tabla
         with st.container(border=True):
 
             st.dataframe(
-                styled_df,
+                tabla_final,
                 column_config={
                     "ANTES": st.column_config.ImageColumn("ANTES", width="small", ),
                     "DESPUES 1": st.column_config.ImageColumn("DESPUES 1", width="small"),
@@ -314,22 +315,20 @@ def mostrar_nueva_pagina(df_filtrado):
             )
 
 
-        def grafico_ejecucion_por_preventa(df_filtrado):
-            # --- Filtrar solo Lona ---
-            df_lona = df_filtrado[df_filtrado["type_id_visit"].isin([1])]
+        def grafico_ejecucion_por_preventa(df_lona):
 
             # --- Calcular totales por preventa ---
-            col_preventa = "name_provider"  # 🔁 cambia si tu columna tiene otro nombre
+            col_preventa = "email_user"  
 
             total_por_preventa = (
-                df_lona.groupby(col_preventa)["visit_id_answer"]
+                df_lona.groupby(col_preventa)["id_visit"]
                 .nunique()
                 .reset_index(name="Total")
             )
 
             finalizadas_por_preventa = (
                 df_lona[df_lona["status_visit"] == "Finalizado"]
-                .groupby(col_preventa)["visit_id_answer"]
+                .groupby(col_preventa)["id_visit"]
                 .nunique()
                 .reset_index(name="Finalizadas")
             )
@@ -340,14 +339,14 @@ def mostrar_nueva_pagina(df_filtrado):
 
             # --- Gráfico horizontal con Altair ---
             bars = alt.Chart(ejecucion).mark_bar(
-                color="#666666",  # azul corporativo
+                color="#666666", 
                 cornerRadiusTopRight=3,
                 cornerRadiusBottomRight=3
             ).encode(
-                y=alt.Y(f"{col_preventa}:N", sort='-x', title="Proveedor"),
+                y=alt.Y(f"{col_preventa}:N", sort='-x', title="Usuario"),
                 x=alt.X("% Ejecución:Q", title="% Ejecución", scale=alt.Scale(domain=[0, 100])),
                 tooltip=[
-                    alt.Tooltip(f"{col_preventa}:N", title="Proveedor"),
+                    alt.Tooltip(f"{col_preventa}:N", title="Usuario"),
                     alt.Tooltip("% Ejecución:Q", format=".1f", title="% Ejecución"),
                     alt.Tooltip("Finalizadas:Q", title="Finalizadas"),
                     alt.Tooltip("Total:Q", title="Total")
@@ -369,7 +368,7 @@ def mostrar_nueva_pagina(df_filtrado):
             chart = (bars + text).properties(
                 width=600,
                 height=250,
-                title="% de Ejecución por Proveedor",
+                title="% de Ejecución por Usuario",
                 background="transparent"
             ).configure_view(
                 stroke=None
@@ -386,7 +385,7 @@ def mostrar_nueva_pagina(df_filtrado):
             return chart
         
         with st.container(border=True):
-            st.altair_chart(grafico_ejecucion_por_preventa(df_filtrado), use_container_width=True)
+            st.altair_chart(grafico_ejecucion_por_preventa(df_filtrado_lona), use_container_width=True)
 
 
 
@@ -394,10 +393,10 @@ def mostrar_nueva_pagina(df_filtrado):
 
         def chart_pie(df, group_col, title, colors, legend_title):
             df_grouped = (
-                df.groupby(group_col)["visit_id_answer"]
+                df.groupby(group_col)["id_visit"]
                 .nunique()
                 .reset_index()
-                .rename(columns={"visit_id_answer": "total"})
+                .rename(columns={"id_visit": "total"})
             )
             df_grouped["porcentaje"] = (df_grouped["total"] / df_grouped["total"].sum() * 100).round(1)
 

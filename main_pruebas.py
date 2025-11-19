@@ -1,10 +1,10 @@
 import streamlit as st
-from data_prep import load_data
+from data_prep_db import build_dataset
 import pandas as pd
 from datetime import date, timedelta
 
 # Páginas
-from paginas.dashboard import mostrar_dashboard
+#from paginas.dashboard import mostrar_dashboard
 from paginas.lona import mostrar_nueva_pagina as mostrar_lona
 from paginas.banner_rack import mostrar_nueva_pagina as mostrar_banner
 from paginas.incidencia import mostrar_incidencia
@@ -12,7 +12,7 @@ from paginas.incidencia import mostrar_incidencia
 # ---------------------
 # Cargar datos
 # ---------------------
-df_final = load_data()
+df_final = build_dataset()
 
 # ---------------------
 # Logo de la pagina
@@ -72,25 +72,25 @@ st.markdown(page_bg, unsafe_allow_html=True)
 # Filtros
 # ---------------------
 df_filtrado = df_final.copy()
-df_filtrado["FechaHora_Menos6h"] = pd.to_datetime(df_filtrado["FechaHora_Menos6h_visit"])
+#df_filtrado["FechaHora_Menos6h"] = pd.to_datetime(df_filtrado["FechaHora_Menos6h_visit"])
 
 # ---------------------
 # Logos en la barra lateral
 # ---------------------
 
 # Obtener los periodos únicos
-periodos = sorted(df_filtrado["Periodo_visit"].dropna().unique())
+periodos = sorted(df_filtrado["name_period"].dropna().unique())
 
 # --- Filtro con valor predeterminado ---
 periodo = st.sidebar.multiselect(
     "Periodo",
     options=periodos,
-    default=["Periodo 5"] if "Periodo 5" in periodos else []  # 👈 Predeterminado
+    default=["P5"] if "P5" in periodos else []  
 )
 
 # --- Aplicar filtro de periodo antes de definir fechas ---
 if periodo:
-    df_filtrado = df_filtrado[df_filtrado["Periodo_visit"].isin(periodo)]
+    df_filtrado = df_filtrado[df_filtrado["name_period"].isin(periodo)]
 
 # --- Ahora, generar rango de fechas según el periodo seleccionado ---
 #if not df_filtrado.empty:
@@ -111,7 +111,7 @@ region = st.sidebar.multiselect("Región", df_filtrado["store_region_store"].dro
 proveedor = st.sidebar.multiselect("Proveedor", df_filtrado["name_provider"].dropna().unique())
 pdv_id = st.sidebar.multiselect("PDV", df_filtrado["store_name_store"].dropna().unique())
 tamano = st.sidebar.multiselect("Tamaño", df_filtrado["TamañoAsignado_answer"].dropna().unique())
-usuario = st.sidebar.multiselect("Usuario", df_filtrado["full_name_user_provider"].dropna().unique())
+usuario = st.sidebar.multiselect("Usuario", df_filtrado["full_name_user"].dropna().unique())
 estado = st.sidebar.multiselect("Estado Visita", df_filtrado["status_visit"].dropna().unique())
 
 with st.sidebar:
@@ -130,8 +130,8 @@ if proveedor:
 #    ]
 if region:
     df_filtrado = df_filtrado[df_filtrado["store_region_store"].isin(region)]
-if periodo:
-    df_filtrado = df_filtrado[df_filtrado["Periodo_visit"].isin(periodo)]
+#if periodo:
+#    df_filtrado = df_filtrado[df_filtrado["Periodo_visit"].isin(periodo)]
 if tipo_actividad:
     df_filtrado = df_filtrado[df_filtrado["name_type"].isin(tipo_actividad)]
 if zona:
@@ -141,7 +141,7 @@ if pdv_id:
 if pdv_sap:
     df_filtrado = df_filtrado[df_filtrado["store_sap_store"].isin(pdv_sap)]
 if usuario:
-    df_filtrado = df_filtrado[df_filtrado["full_name_user_provider"].isin(usuario)]
+    df_filtrado = df_filtrado[df_filtrado["full_name_user"].isin(usuario)]
 if tamano:
     df_filtrado = df_filtrado[df_filtrado["TamañoAsignado_answer"].isin(tamano)]
 if estado:

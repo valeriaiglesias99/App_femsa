@@ -58,8 +58,8 @@ def mostrar_incidencia(df_filtrado):
     # --- KPIs ---
     df_filtrado = df_filtrado.copy()
     df_filtrado_incidencias = df_filtrado[df_filtrado["sectionid_answer"].isin([2,5])]
-    incidencias_lona = df_filtrado_incidencias[df_filtrado_incidencias["sectionid_answer"].isin([2])]["visit_id_answer"].nunique()
-    incidencias_banner = df_filtrado_incidencias[df_filtrado_incidencias["sectionid_answer"].isin([5])]["visit_id_answer"].nunique()
+    incidencias_lona = df_filtrado_incidencias[df_filtrado_incidencias["id_section"].isin([2])]["visit_id_answer"].nunique()
+    incidencias_banner = df_filtrado_incidencias[df_filtrado_incidencias["id_section"].isin([5])]["visit_id_answer"].nunique()
     fotos = df_filtrado_incidencias[df_filtrado_incidencias["answer_answer"].astype(str).str.contains(".jpg", na=False)]["visit_id_answer"].count()
     VisitasConComentario = ( df_filtrado_incidencias[ (df_filtrado_incidencias["question_id_answer"].isin([7, 10])) & (df_filtrado_incidencias["answer_answer"].notna()) & (df_filtrado_incidencias["answer_answer"] != "") ]["visit_id_answer"] .nunique())
 
@@ -111,10 +111,10 @@ def mostrar_incidencia(df_filtrado):
         df_filtrado["ended_date"] = df_filtrado["ended_at_visit"].dt.date
 
             # --- Calcular incidencias ---
-        incidencias = (
-            df_filtrado_incidencias[df_filtrado_incidencias["sectionid_answer"].isin([2,5])]
-            .groupby("ended_date")["visit_id_answer"].nunique()
-            .reset_index(name="Incidencias")
+    incidencias = (
+        df_filtrado_incidencias[df_filtrado_incidencias["id_section"].isin([2,5])]
+        .groupby("ended_date")["visit_id_answer"].nunique()
+        .reset_index(name="Incidencias")
         )
 
         # --- Calcular finalizadas ---
@@ -122,7 +122,7 @@ def mostrar_incidencia(df_filtrado):
         df_filtrado[df_filtrado["status_visit"] == "Finalizado"]
         .groupby("ended_date")["visit_id_answer"].nunique()
         .reset_index(name="Finalizadas")
-    )
+        )
 
     # --- Tabla matriz de Incidencias ---
     # Visitas Únicas
@@ -148,12 +148,12 @@ def mostrar_incidencia(df_filtrado):
                             how="left")
 
     prueba_incidencia = (
-            df_filtrado_incidencias[df_filtrado_incidencias["sectionid_answer"].isin([2, 5])]
-            .loc[:, ["visit_id_answer", "sectionid_answer"]]
-            .dropna(subset=["sectionid_answer"])
+            df_filtrado_incidencias[df_filtrado_incidencias["id_section"].isin([2, 5])]
+            .loc[:, ["visit_id_answer", "id_section"]]
+            .dropna(subset=["id_section"])
         )
 
-    prueba_incidencia["Incidencia"] = prueba_incidencia["sectionid_answer"].map({
+    prueba_incidencia["Incidencia"] = prueba_incidencia["id_section"].map({
             2: "Lona",
             5: "Banner + Rack"
         })

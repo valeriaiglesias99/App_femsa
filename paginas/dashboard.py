@@ -7,7 +7,6 @@ import pandas as pd
 def mostrar_dashboard(df_filtrado):
 
 
-    st.write(f"Registros filtrados: {len(df_filtrado)}")
     if len(df_filtrado) == 0:
         st.warning("No hay datos para mostrar con los filtros seleccionados.")
         return
