@@ -109,7 +109,7 @@ def mostrar_nueva_pagina(df_filtrado):
     # --- Fila 1: 4 tarjetas ---
         col1, col2, col3 = st.columns(3)
         with col1:
-            kpi_card("Lona", f"{lona:,}", icon="imagenes/localizacion.png")
+            kpi_card("Lona", f"{df_filtrado_lona_conteo:,}", icon="imagenes/localizacion.png")
         with col2:
             kpi_card("Finalizadas", f"{finalizadas:,}", icon="imagenes/garrapata.png")
         with col3:
@@ -139,20 +139,20 @@ def mostrar_nueva_pagina(df_filtrado):
         )
 
         bars = alt.Chart(df_hist).mark_bar(
-            color="#AF0E0E", size=25,
+            color="#AF0E0E", size=20,
             cornerRadiusTopLeft=3, cornerRadiusTopRight=3
         ).encode(
             x=alt.X(
                         "fecha_visit:T",
                         title="Fecha",
-                        axis=alt.Axis(format="%b %d")  # ✅ Muestra 'Sep 07', 'Oct 02', etc.
-                    ),
+                        axis=alt.Axis(format="%b %d")
+                                    ),
             y=alt.Y("total_ejecucion:Q", title="PDV Medidos"),
             tooltip=[
                 alt.Tooltip("fecha_visit:T", title="Fecha", format="%b %d, %Y"),  # ✅ fecha formateada
                 alt.Tooltip("total_ejecucion:Q", title="PDV Medidos")              # ✅ nombre más claro
-            ]
-        )
+            ])
+
 
         text = alt.Chart(df_hist).mark_text(
             dy=-10, color="black", size=14
@@ -179,7 +179,9 @@ def mostrar_nueva_pagina(df_filtrado):
             ).configure_legend(
                 labelColor="#000000",
                 titleColor="#000000"
-            )
+            ).configure_bar(
+                    binSpacing=12        # ESPACIO ENTRE BARRAS
+                )
 
         return chart
 
@@ -434,9 +436,9 @@ def mostrar_nueva_pagina(df_filtrado):
                 )
             )
         with st.container(border=True):
-            st.altair_chart(chart_pie(df_filtrado_lona[df_filtrado_lona["question_id_answer"] == 8], "answer_answer", "Incidencias", ["#FF0000", "#666666", "#530C0C"], "Motivo"), use_container_width=True)
+            st.altair_chart(chart_pie(df_filtrado_lona[df_filtrado_lona["question_id_answer"] == 8], "answer_answer", "Incidencias", [ "#FF0000", "#666666", "#6B1F1F",  "#EE8787", "#000000", "#DC0707",  "#490707",  "#4C4A4A",  "#CA4545", "#BA0000"], "Motivo"), use_container_width=True)
         with st.container(border=True):
-            st.altair_chart(chart_pie(df_filtrado_lona[df_filtrado_lona["question_id_answer"] == 4], "answer_answer", "Tamaños", ["#FF0101", "#666666", "#630404"], "Tamaño"), use_container_width=True)
+            st.altair_chart(chart_pie(df_filtrado_lona[df_filtrado_lona["question_id_answer"] == 4], "answer_answer", "Tamaños", [ "#FF0000", "#666666", "#6B1F1F",  "#EE8787", "#000000", "#DC0707",  "#490707",  "#4C4A4A",  "#CA4545", "#BA0000"], "Tamaño"), use_container_width=True)
         with st.container(border=True):        
-            st.altair_chart(chart_pie(df_filtrado_lona[df_filtrado_lona["type_id_visit"] == 1], "status_visit", "Estado de Finalización", ["#A71616", "#666666", "#CCCCCC"], "Estado"), use_container_width=True)
+            st.altair_chart(chart_pie(df_filtrado_lona[df_filtrado_lona["type_id_visit"] == 1], "status_visit", "Estado de Finalización", [ "#FF0000", "#666666", "#6B1F1F",  "#EE8787", "#000000", "#DC0707",  "#490707",  "#4C4A4A",  "#CA4545", "#BA0000"], "Estado"), use_container_width=True)
 

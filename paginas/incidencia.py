@@ -57,7 +57,7 @@ def mostrar_incidencia(df_filtrado):
     
     # --- KPIs ---
     df_filtrado = df_filtrado.copy()
-    df_filtrado_incidencias = df_filtrado[df_filtrado["sectionid_answer"].isin([2,5])]
+    df_filtrado_incidencias = df_filtrado[df_filtrado["id_section"].isin([2,5])]
     incidencias_lona = df_filtrado_incidencias[df_filtrado_incidencias["id_section"].isin([2])]["visit_id_answer"].nunique()
     incidencias_banner = df_filtrado_incidencias[df_filtrado_incidencias["id_section"].isin([5])]["visit_id_answer"].nunique()
     fotos = df_filtrado_incidencias[df_filtrado_incidencias["answer_answer"].astype(str).str.contains(".jpg", na=False)]["visit_id_answer"].count()
@@ -325,7 +325,7 @@ def mostrar_incidencia(df_filtrado):
             data["porcentaje"] = (data["total"] / data["total"].sum() * 100).round(1)
 
             # Colores personalizados
-            colores = ["#FF0000", "#666666", "#6B1F1F"]  # verde para “sin incidencias”
+            colores = ["#FF0000", "#666666", "#6B1F1F",  "#EE8787", "#000000", "#DC0707",  "#490707",  "#4C4A4A",  "#CA4545", "#BA0000"]  # verde para “sin incidencias”
 
             # Pie chart
             pie = (
@@ -384,7 +384,7 @@ def mostrar_incidencia(df_filtrado):
             df_inc["porcentaje"] = (df_inc["total"] / df_inc["total"].sum() * 100).round(1)
 
             # Colores personalizados
-            colores = ["#FF0000", "#666666", "#530C0C"]
+            colores = ["#FF0000", "#666666", "#6B1F1F",  "#EE8787", "#000000", "#DC0707",  "#490707",  "#4C4A4A",  "#CA4545", "#BA0000"]
 
             # Pie chart (sin hueco)
             pie = (

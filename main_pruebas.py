@@ -85,7 +85,7 @@ periodos = sorted(df_filtrado["name_period"].dropna().unique())
 periodo = st.sidebar.multiselect(
     "Periodo",
     options=periodos,
-    default=["P5"] if "P5" in periodos else []  
+    default=["P5 Lucro"] if "P5 Lucro" in periodos else []  
 )
 
 # --- Aplicar filtro de periodo antes de definir fechas ---
@@ -104,7 +104,7 @@ if periodo:
 #fecha_inicio = st.sidebar.date_input("Fecha inicio", value=min_fecha)
 #fecha_fin = st.sidebar.date_input("Fecha fin", value=max_fecha)
 
-tipo_actividad = st.sidebar.multiselect("Tipo de actividad", df_filtrado["name_type"].dropna().unique())
+#tipo_actividad = st.sidebar.multiselect("Tipo de actividad", df_filtrado["name_type"].dropna().unique())
 pdv_sap = st.sidebar.multiselect("SAP", df_filtrado["store_sap_store"].dropna().unique())
 zona = st.sidebar.multiselect("Zona", df_filtrado["store_zone_store"].dropna().unique())
 region = st.sidebar.multiselect("Región", df_filtrado["store_region_store"].dropna().unique())
@@ -132,8 +132,8 @@ if region:
     df_filtrado = df_filtrado[df_filtrado["store_region_store"].isin(region)]
 #if periodo:
 #    df_filtrado = df_filtrado[df_filtrado["Periodo_visit"].isin(periodo)]
-if tipo_actividad:
-    df_filtrado = df_filtrado[df_filtrado["name_type"].isin(tipo_actividad)]
+#if tipo_actividad:
+#    df_filtrado = df_filtrado[df_filtrado["name_type"].isin(tipo_actividad)]
 if zona:
     df_filtrado = df_filtrado[df_filtrado["store_zone_store"].isin(zona)]
 if pdv_id:

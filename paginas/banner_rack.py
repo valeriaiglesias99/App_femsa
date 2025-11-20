@@ -106,7 +106,7 @@ def mostrar_nueva_pagina(df_filtrado):
     # --- Fila 1: 4 tarjetas ---
         col1, col2, col3 = st.columns(3)
         with col1:
-            kpi_card("Banner", f"{lona:,}", icon="imagenes/localizacion.png")
+            kpi_card("Banner", f"{df_filtrado_lona_conteo:,}", icon="imagenes/localizacion.png")
         with col2:
             kpi_card("Finalizadas", f"{finalizadas:,}", icon="imagenes/garrapata.png")
         with col3:
@@ -491,19 +491,19 @@ def mostrar_nueva_pagina(df_filtrado):
 
         with st.container(border=True):
             st.altair_chart(
-                chart_dona(df_filtrado_lona, "answer_answer", 5, "Incidencias", "Motivo", ["#FF0000", "#666666", "#530C0C"]),
+                chart_dona(df_filtrado_lona, "answer_answer", 5, "Incidencias", "Motivo", ["#FF0000", "#666666", "#6B1F1F",  "#EE8787", "#000000", "#DC0707",  "#490707",  "#4C4A4A",  "#CA4545", "#BA0000"]),
                 use_container_width=True
             )
 
         with st.container(border=True):
             st.altair_chart(
-                chart_dona(df_filtrado_lona, "answer_answer", 14, "Tamaños", "Tamaño", ["#FF0101", "#666666", "#630404"]),
+                chart_dona(df_filtrado_lona, "answer_answer", 14, "Tamaños", "Tamaño", [ "#FF0000", "#666666", "#6B1F1F",  "#EE8787", "#000000", "#DC0707",  "#490707",  "#4C4A4A",  "#CA4545", "#BA0000"]),
                 use_container_width=True
             )
 
         with st.container(border=True):
             st.altair_chart(
-                chart_dona(df_filtrado_lona, "answer_answer", 17, "Posición", "Posición", ["#FF0101", "#666666", "#630404"]),
+                chart_dona(df_filtrado_lona, "answer_answer", 17, "Posición", "Posición", [ "#FF0000", "#666666", "#6B1F1F",  "#EE8787", "#000000", "#DC0707",  "#490707",  "#4C4A4A",  "#CA4545", "#BA0000"]),
                 use_container_width=True
             )
 
