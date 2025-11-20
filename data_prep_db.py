@@ -1,6 +1,6 @@
 # data_prep.py
 import pandas as pd
-from .connection import get_connection 
+from connection import get_connection 
 import numpy as np
 
 #cargar datos desde la base de datos
