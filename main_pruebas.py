@@ -62,7 +62,10 @@ with st.sidebar:
         for key in ["usuario", "nombre"]:
             if key in st.session_state:
                 del st.session_state[key]
-        st.rerun()
+        # Limpiar caché de funciones cacheadas
+        st.cache_data.clear()
+        # Reiniciar la app
+        st.experimental_rerun()
 
 
 pagina = st.sidebar.selectbox(
