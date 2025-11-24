@@ -113,14 +113,14 @@ def mostrar_incidencia(df_filtrado):
             # --- Calcular incidencias ---
     incidencias = (
         df_filtrado_incidencias[df_filtrado_incidencias["id_section"].isin([2,5])]
-        .groupby("ended_date")["visit_id_answer"].nunique()
+        .groupby("Fecha_Menos6h_visit")["visit_id_answer"].nunique()
         .reset_index(name="Incidencias")
         )
 
         # --- Calcular finalizadas ---
     finalizadas = (
         df_filtrado[df_filtrado["status_visit"] == "Finalizado"]
-        .groupby("ended_date")["visit_id_answer"].nunique()
+        .groupby("Fecha_Menos6h_visit")["visit_id_answer"].nunique()
         .reset_index(name="Finalizadas")
         )
 
@@ -220,13 +220,13 @@ def mostrar_incidencia(df_filtrado):
     with col1:
 
         # --- Unir ambos ---
-        resumen = pd.merge(incidencias, finalizadas, on="ended_date", how="outer").fillna(0)
+        resumen = pd.merge(incidencias, finalizadas, on="Fecha_Menos6h_visit", how="outer").fillna(0)
 
         fig = go.Figure()
 
         # Barras de incidencias
         fig.add_trace(go.Bar(
-            x=resumen["ended_date"],
+            x=resumen["Fecha_Menos6h_visit"],
             y=resumen["Incidencias"],
             name="Incidencias",
             marker=dict(
@@ -240,7 +240,7 @@ def mostrar_incidencia(df_filtrado):
 
         # Línea de finalizadas
         fig.add_trace(go.Scatter(
-            x=resumen["ended_date"],
+            x=resumen["Fecha_Menos6h_visit"],
             y=resumen["Finalizadas"],
             name="Finalizadas",
             mode="lines+markers+text",

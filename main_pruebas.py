@@ -2,6 +2,7 @@ import streamlit as st
 from data_prep_db import build_dataset
 import pandas as pd
 from datetime import date, timedelta
+from login import mostrar_login
 
 # Páginas
 #from paginas.dashboard import mostrar_dashboard
@@ -9,10 +10,6 @@ from paginas.lona import mostrar_nueva_pagina as mostrar_lona
 from paginas.banner_rack import mostrar_nueva_pagina as mostrar_banner
 from paginas.incidencia import mostrar_incidencia
 
-# ---------------------
-# Cargar datos
-# ---------------------
-df_final = build_dataset()
 
 # ---------------------
 # Logo de la pagina
@@ -24,12 +21,48 @@ st.set_page_config(
 )
 
 # ---------------------
+# LOGIN
+# ---------------------
+logged = mostrar_login()
+
+if not logged:
+    st.stop()  # Detener ejecución si NO está logueado
+# Si está logueado, continuar
+
+# ---------------------
+# Cargar datos
+# ---------------------
+if "df_final" not in st.session_state:
+    st.session_state.df_final = build_dataset()
+    
+
+# --- Filtrar datos SOLO del proveedor logueado ---
+proveedor_logueado = st.session_state.nombre
+
+df_logueado = st.session_state.df_final[
+    st.session_state.df_final["name_provider"] == proveedor_logueado
+]
+
+st.session_state.df_final = df_logueado
+
+# ---------------------
 # Menú lateral
 # ---------------------
 
 
 with st.sidebar:
     st.image("imagenes/logo FEMSA-05.png", use_container_width=False)
+
+    st.markdown(
+        f"<h3 style='color:black; font-weight:bold;'>Bienvenido {st.session_state.nombre}</h3>",
+        unsafe_allow_html=True
+    )
+
+    if st.button("Cerrar sesión"):
+        for key in ["usuario", "nombre"]:
+            if key in st.session_state:
+                del st.session_state[key]
+        st.rerun()
 
 
 pagina = st.sidebar.selectbox(
@@ -71,7 +104,7 @@ st.markdown(page_bg, unsafe_allow_html=True)
 # ---------------------
 # Filtros
 # ---------------------
-df_filtrado = df_final.copy()
+df_filtrado = st.session_state.df_final.copy()
 #df_filtrado["FechaHora_Menos6h"] = pd.to_datetime(df_filtrado["FechaHora_Menos6h_visit"])
 
 # ---------------------
@@ -146,17 +179,19 @@ if tamano:
     df_filtrado = df_filtrado[df_filtrado["TamañoAsignado_answer"].isin(tamano)]
 if estado:
     df_filtrado = df_filtrado[df_filtrado["status_visit"].isin(estado)]
+
+st.session_state.df_filtrado = df_filtrado
 # ---------------------
 # Navegación entre páginas
 # ---------------------
 if pagina == "Lona":
-    mostrar_lona(df_filtrado)
+    mostrar_lona(st.session_state.df_filtrado)
 
 elif pagina == "Banner + Rack":
-    mostrar_banner(df_filtrado)
+    mostrar_banner(st.session_state.df_filtrado)
 
 elif pagina == "Incidencias":
-    mostrar_incidencia(df_filtrado)
+    mostrar_incidencia(st.session_state.df_filtrado)
 
 
 

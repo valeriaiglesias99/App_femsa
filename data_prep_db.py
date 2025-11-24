@@ -2,6 +2,7 @@
 import pandas as pd
 from connection import get_connection 
 import numpy as np
+import streamlit as st
 
 #cargar datos desde la base de datos
 def load_data(query):
@@ -10,11 +11,14 @@ def load_data(query):
     conn.close()
     return df
 
+@st.cache_data(ttl=600)
 def build_dataset():
     # ================= PROVIDERS ====================
     query_providers = "SELECT id, code, name, email, status FROM providers;"
     providers = load_data(query_providers).add_suffix("_provider")
-
+    
+    # Convertir el full_name a Title Case (Cada Palabra Empieza con Mayúscula)
+    providers["name_provider"] = providers["name_provider"].str.title()
     # ================= USERS ========================
     query_users = """
     SELECT id, username, email, full_name, status, role, provider_id
@@ -24,6 +28,10 @@ def build_dataset():
       AND email NOT LIKE 'test%';
     """
     users = load_data(query_users).add_suffix("_user")
+
+    # Convertir el full_name a Title Case (Cada Palabra Empieza con Mayúscula)
+    users["full_name_user"] = users["full_name_user"].str.title()
+
 
     # ================= VISITS =======================
     query_visits = """

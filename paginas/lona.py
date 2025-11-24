@@ -131,8 +131,11 @@ def mostrar_nueva_pagina(df_filtrado):
     
     # --- Gráfico de ejecución por día ---
     def ejecucion_por_dia(df_final):
+
+        finalizadas = df_final[df_final["status_visit"] == "Finalizado"]
+
         df_hist = (
-            df_final.groupby("fecha_visit")["id_visit"]
+            finalizadas.groupby("Fecha_Menos6h_visit")["id_visit"]
             .nunique()
             .reset_index()
             .rename(columns={"id_visit": "total_ejecucion"})
@@ -143,13 +146,13 @@ def mostrar_nueva_pagina(df_filtrado):
             cornerRadiusTopLeft=3, cornerRadiusTopRight=3
         ).encode(
             x=alt.X(
-                        "fecha_visit:T",
+                        "Fecha_Menos6h_visit:T",
                         title="Fecha",
                         axis=alt.Axis(format="%b %d")
                                     ),
             y=alt.Y("total_ejecucion:Q", title="PDV Medidos"),
             tooltip=[
-                alt.Tooltip("fecha_visit:T", title="Fecha", format="%b %d, %Y"),  # ✅ fecha formateada
+                alt.Tooltip("Fecha_Menos6h_visit:T", title="Fecha", format="%b %d, %Y"),  # ✅ fecha formateada
                 alt.Tooltip("total_ejecucion:Q", title="PDV Medidos")              # ✅ nombre más claro
             ])
 
@@ -157,7 +160,7 @@ def mostrar_nueva_pagina(df_filtrado):
         text = alt.Chart(df_hist).mark_text(
             dy=-10, color="black", size=14
         ).encode(
-            x="fecha_visit:T",
+            x="Fecha_Menos6h_visit:T",
             y="total_ejecucion:Q",
             text="total_ejecucion:Q"
         )
@@ -327,6 +330,8 @@ def mostrar_nueva_pagina(df_filtrado):
                 .nunique()
                 .reset_index(name="Total")
             )
+            # Filtrar preventas con total > 0
+            total_por_preventa = total_por_preventa[ total_por_preventa["Total"] > 0 ]
 
             finalizadas_por_preventa = (
                 df_lona[df_lona["status_visit"] == "Finalizado"]
@@ -338,14 +343,24 @@ def mostrar_nueva_pagina(df_filtrado):
             # --- Unir y calcular % de ejecución ---
             ejecucion = pd.merge(total_por_preventa, finalizadas_por_preventa, on=col_preventa, how="left").fillna(0)
             ejecucion["% Ejecución"] = (ejecucion["Finalizadas"] / ejecucion["Total"]) * 100
-
+            ejecucion = ejecucion.sort_values("% Ejecución", ascending=True)
+            # Convertir email_user a categoría ordenada
+            ejecucion[col_preventa] = pd.Categorical(
+                ejecucion[col_preventa],
+                categories=ejecucion[col_preventa],   # mantiene orden actual
+                ordered=True
+            )
             # --- Gráfico horizontal con Altair ---
             bars = alt.Chart(ejecucion).mark_bar(
                 color="#666666", 
                 cornerRadiusTopRight=3,
                 cornerRadiusBottomRight=3
             ).encode(
-                y=alt.Y(f"{col_preventa}:N", sort='-x', title="Usuario"),
+                y=alt.Y(
+                    f"{col_preventa}:N",
+                    sort=None,       # 👈 Importante: dejar que use el orden de la categoría
+                    title="Usuario"
+                ),
                 x=alt.X("% Ejecución:Q", title="% Ejecución", scale=alt.Scale(domain=[0, 100])),
                 tooltip=[
                     alt.Tooltip(f"{col_preventa}:N", title="Usuario"),
