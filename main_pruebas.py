@@ -32,40 +32,45 @@ if not logged:
 # ---------------------
 # Cargar datos
 # ---------------------
-if "df_final" not in st.session_state:
-    st.session_state.df_final = build_dataset()
-    
+# Usuario logueado
+usuario_actual = st.session_state.nombre
 
-# --- Filtrar datos SOLO del proveedor logueado ---
+# Cache por usuario
+if f"df_final_{usuario_actual}" not in st.session_state:
+    st.session_state[f"df_final_{usuario_actual}"] = build_dataset(usuario_actual)
+
+# Tomar el DataFrame cacheado
+df_final = st.session_state[f"df_final_{usuario_actual}"]
+
+# Filtrar datos solo del proveedor logueado
 proveedor_logueado = st.session_state.nombre
+df_logueado = df_final[df_final["name_provider"] == proveedor_logueado]
 
-df_logueado = st.session_state.df_final[
-    st.session_state.df_final["name_provider"] == proveedor_logueado
-]
-
+# Guardar el DataFrame filtrado en session_state
 st.session_state.df_final = df_logueado
+
 
 # ---------------------
 # Menú lateral
 # ---------------------
-
-
 with st.sidebar:
     st.image("imagenes/logo FEMSA-05.png", use_container_width=False)
 
+    nombre_usuario = st.session_state.get('nombre', '')
     st.markdown(
-        f"<h3 style='color:black; font-weight:bold;'>Bienvenido {st.session_state.nombre}</h3>",
+        f"<h3 style='color:black; font-weight:bold;'>Bienvenido {nombre_usuario}</h3>",
         unsafe_allow_html=True
     )
 
     if st.button("Cerrar sesión"):
+        # Limpiar variables de sesión
         for key in ["usuario", "nombre"]:
-            if key in st.session_state:
-                del st.session_state[key]
+            st.session_state.pop(key, None)
         # Limpiar caché de funciones cacheadas
         st.cache_data.clear()
-        # Reiniciar la app
-        st.experimental_rerun()
+        st.cache_resource.clear()  # solo si usas cache_resource
+        # Reiniciar la app de forma segura
+        st.rerun()
 
 
 pagina = st.sidebar.selectbox(

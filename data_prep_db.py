@@ -12,7 +12,7 @@ def load_data(query):
     return df
 
 @st.cache_data(ttl=600)
-def build_dataset():
+def build_dataset(usuario):
     # ================= PROVIDERS ====================
     query_providers = "SELECT id, code, name, email, status FROM providers;"
     providers = load_data(query_providers).add_suffix("_provider")
@@ -179,3 +179,8 @@ def build_dataset():
     )
 
     return df_combined
+
+
+if "usuario" in st.session_state:
+    datos = build_dataset(st.session_state["usuario"])
+    st.write(datos)
