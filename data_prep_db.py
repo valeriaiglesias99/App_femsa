@@ -17,8 +17,6 @@ def build_dataset():
     query_providers = "SELECT id, code, name, email, status FROM providers;"
     providers = load_data(query_providers).add_suffix("_provider")
     
-    # Convertir el full_name a Title Case (Cada Palabra Empieza con Mayúscula)
-    providers["name_provider"] = providers["name_provider"].str.title()
     # ================= USERS ========================
     query_users = """
     SELECT id, username, email, full_name, status, role, provider_id
